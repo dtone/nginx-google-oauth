@@ -37,6 +37,11 @@ local token_secret = ngx.var.ngo_token_secret or "UNSET"
 local set_user = ngx.var.ngo_user
 local email_as_user = ngx.var.ngo_email_as_user
 
+-- DTOne patch (arusek)
+if email_as_user == "false" then
+    email_as_user = false
+end
+
 -- Force the user to set a token secret
 if token_secret == "UNSET" then
   ngx.log(ngx.ERR, "$ngo_token_secret must be set in Nginx config!")
@@ -59,8 +64,9 @@ if oauth_access_token == expected_token and oauth_expires and oauth_expires > ng
   -- Populate the nginx 'ngo_user' variable with our Oauth username, if requested
   if set_user then
     local oauth_user, oauth_domain = oauth_email:match("([^@]+)@(.+)")
+    -- DTOne patch (arusek)
     if email_as_user then
-      ngx.var.ngo_user = email
+      ngx.var.ngo_user = oauth_email
     else
       ngx.var.ngo_user = oauth_user
     end
